@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var build = "develop"
+
 func main() {
 	log, err := logger.New("SALES-API")
 	if err != nil {
@@ -28,7 +30,7 @@ func main() {
 
 func run(log *zap.SugaredLogger) error {
 	//GOMAXPROCS
-	log.Infow("startup", "GOMAXPROCS", runtime.GOMAXPROCS(0))
+	log.Infow("startup", "GOMAXPROCS", runtime.GOMAXPROCS(0), "BUILD", build)
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)

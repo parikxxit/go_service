@@ -197,7 +197,7 @@ dev-docker:
 # ==============================================================================
 # Building containers
 
-all: service metrics
+all: service
 
 service:
 	docker build \
@@ -226,10 +226,10 @@ dev-up-local:
 
 	kubectl wait --timeout=120s --namespace=local-path-storage --for=condition=Available deployment/local-path-provisioner
 
-	kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
-	kind load docker-image $(POSTGRES) --name $(KIND_CLUSTER)
-	kind load docker-image $(VAULT) --name $(KIND_CLUSTER)
-	kind load docker-image $(ZIPKIN) --name $(KIND_CLUSTER)
+#	kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
+#	kind load docker-image $(POSTGRES) --name $(KIND_CLUSTER)
+#	kind load docker-image $(VAULT) --name $(KIND_CLUSTER)
+#	kind load docker-image $(ZIPKIN) --name $(KIND_CLUSTER)
 
 dev-up: dev-up-local
 	telepresence --context=kind-$(KIND_CLUSTER) helm install
@@ -248,17 +248,17 @@ dev-load:
 	cd zarf/k8s/dev/sales; kustomize edit set image service-image=$(SERVICE_IMAGE)
 	kind load docker-image $(SERVICE_IMAGE) --name $(KIND_CLUSTER)
 
-	cd zarf/k8s/dev/sales; kustomize edit set image metrics-image=$(METRICS_IMAGE)
-	kind load docker-image $(METRICS_IMAGE) --name $(KIND_CLUSTER)
+	# cd zarf/k8s/dev/sales; kustomize edit set image metrics-image=$(METRICS_IMAGE)
+	# kind load docker-image $(METRICS_IMAGE) --name $(KIND_CLUSTER)
 
 dev-apply:
-	kustomize build zarf/k8s/dev/vault | kubectl apply -f -
+	# kustomize build zarf/k8s/dev/vault | kubectl apply -f -
 
-	kustomize build zarf/k8s/dev/database | kubectl apply -f -
-	kubectl rollout status --namespace=$(NAMESPACE) --watch --timeout=120s sts/database
+	# kustomize build zarf/k8s/dev/database | kubectl apply -f -
+	# kubectl rollout status --namespace=$(NAMESPACE) --watch --timeout=120s sts/database
 
-	kustomize build zarf/k8s/dev/zipkin | kubectl apply -f -
-	kubectl wait pods --namespace=$(NAMESPACE) --selector app=zipkin --for=condition=Ready
+	# kustomize build zarf/k8s/dev/zipkin | kubectl apply -f -
+	# kubectl wait pods --namespace=$(NAMESPACE) --selector app=zipkin --for=condition=Ready
 
 	kustomize build zarf/k8s/dev/sales | kubectl apply -f -
 	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(APP) --for=condition=Ready
@@ -273,7 +273,8 @@ dev-update-apply: all dev-load dev-apply
 # ------------------------------------------------------------------------------
 
 dev-logs:
-	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 --max-log-requests=6 | go run app/tooling/logfmt/main.go -service=$(SERVICE_NAME)
+	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 --max-log-requests=6 
+	# | go run app/tooling/logfmt/main.go -service=$(SERVICE_NAME)
 
 dev-logs-init:
 	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) -f --tail=100 -c init-vault-system
