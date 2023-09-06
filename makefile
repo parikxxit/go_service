@@ -226,7 +226,7 @@ dev-up-local:
 
 	kubectl wait --timeout=120s --namespace=local-path-storage --for=condition=Available deployment/local-path-provisioner
 
-#	kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
+	kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
 #	kind load docker-image $(POSTGRES) --name $(KIND_CLUSTER)
 #	kind load docker-image $(VAULT) --name $(KIND_CLUSTER)
 #	kind load docker-image $(ZIPKIN) --name $(KIND_CLUSTER)
