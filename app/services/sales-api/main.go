@@ -121,7 +121,7 @@ func run(log *zap.SugaredLogger) error {
 
 	select {
 	case err := <-serverError:
-		return fmt.Errorf("Server errro: %v", err)
+		return fmt.Errorf("server errro: %v", err)
 	case sig := <-shutdown:
 		log.Infow("shutdown", "status", "shutdown started", "signal", sig)
 		defer log.Infow("shutdown", "status", "shutdown completed", "signal", sig)
@@ -131,7 +131,7 @@ func run(log *zap.SugaredLogger) error {
 
 		if err := api.Shutdown(ctx); err != nil {
 			api.Close()
-			return fmt.Errorf("Could not stop server gracefully: %w", err)
+			return fmt.Errorf("could not stop server gracefully: %w", err)
 		}
 	}
 
