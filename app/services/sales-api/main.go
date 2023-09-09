@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"expvar"
 	"fmt"
@@ -91,6 +92,9 @@ func run(log *zap.SugaredLogger) error {
 	}()
 
 	// -------------------------------------------------------------------------
+	// Start API service
+
+	log.Infow("startup", "status", "Initailizing V1 api")
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
@@ -98,5 +102,38 @@ func run(log *zap.SugaredLogger) error {
 	sig := <-shutdown
 	log.Infow("shutdown", "status", "shutdown started", "signal", sig)
 	defer log.Infow("shutdown", "status", "shutdown completed", "signal", sig)
+
+	api := http.Server{
+		Addr:         cfg.Web.APIHost,
+		Handler:      nil,
+		ReadTimeout:  cfg.Web.ReadTimeout,
+		WriteTimeout: cfg.Web.WriteTimeout,
+		IdleTimeout:  cfg.Web.IdleTimeout,
+		ErrorLog:     zap.NewStdLog(log.Desugar()),
+	}
+
+	serverError := make(chan error, 1)
+
+	go func() {
+		log.Infow("startup", "status", "api router status", "host", api.Addr)
+		serverError <- api.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serverError:
+		return fmt.Errorf("Server errro: %v", err)
+	case sig := <-shutdown:
+		log.Infow("shutdown", "status", "shutdown started", "signal", sig)
+		defer log.Infow("shutdown", "status", "shutdown completed", "signal", sig)
+
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
+		defer cancel()
+
+		if err := api.Shutdown(ctx); err != nil {
+			api.Close()
+			return fmt.Errorf("Could not stop server gracefully: %w", err)
+		}
+	}
+
 	return nil
 }
