@@ -458,3 +458,9 @@ run-local:
 
 run-local-help:
 	go run app/services/sales-api/main.go --help
+
+test-endpoint:
+	curl -il $(SERVICE_NAME).$(NAMESPACE).svc.cluser.local:4000/debug/pprof
+
+test-endpoint-local:
+	curl -il localhost:4000/debug/vars
